@@ -6,18 +6,30 @@ import os
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# ---------------- Firebase ----------------
-cred = credentials.Certificate("admin.json")  # 把 admin.json 放在 repo
+# ---------------- Firebase 初始化 ----------------
+# 從環境變數組成憑證
+cred_dict = {
+    "type": "service_account",
+    "project_id": os.environ["FIREBASE_PROJECT_ID"],
+    "private_key_id": "dummy",  # 可填 dummy
+    "private_key": os.environ["FIREBASE_PRIVATE_KEY"].replace("\\n","\n"),
+    "client_email": os.environ["FIREBASE_CLIENT_EMAIL"],
+    "client_id": "dummy",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "dummy"
+}
+
+cred = credentials.Certificate(cred_dict)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 # ---------------- FastAPI ----------------
 app = FastAPI()
-
-# 允許 TurboWarp 前端連線
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # 允許 TurboWarp 前端
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
